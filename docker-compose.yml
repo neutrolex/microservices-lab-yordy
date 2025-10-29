@@ -20,5 +20,20 @@ services:
     ports:
       - "6379:6379"
 
+  auth-service:
+    build: ./auth-service
+    container_name: auth_service
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: main_db
+      DB_USER: devuser
+      DB_PASSWORD: devpass
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
 volumes:
   pgdata:
