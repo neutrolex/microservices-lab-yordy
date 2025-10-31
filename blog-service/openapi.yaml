@@ -1,0 +1,259 @@
+  openapi: 3.0.3
+info:
+  title: Blog Service API
+  description: Microservicio de blog con posts, categorías y autores
+  version: 1.0.0
+  contact:
+    name: Blog Service Team
+    email: team@blogservice.com
+
+servers:
+  - url: http://localhost:8001
+    description: Development server
+
+paths:
+  /healthz/:
+    get:
+      summary: Health Check
+      description: Verifica el estado del servicio, base de datos y Redis
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Servicio saludable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: blog-service
+                  version:
+                    type: string
+                    example: 1.0.0
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: ok
+                      redis:
+                        type: string
+                        example: ok
+
+  /api/categories/:
+    get:
+      summary: Listar categorías
+      description: Obtiene todas las categorías activas
+      tags:
+        - Categories
+      responses:
+        '200':
+          description: Lista de categorías
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+
+  /api/posts/:
+    get:
+      summary: Listar posts
+      description: Obtiene posts publicados con búsqueda y paginación
+      tags:
+        - Posts
+      parameters:
+        - name: search
+          in: query
+          description: Buscar en título y contenido
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Número de página
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: category
+          in: query
+          description: Filtrar por categoría (ID)
+          required: false
+          schema:
+            type: integer
+        - name: author
+          in: query
+          description: Filtrar por autor (ID)
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista paginada de posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 25
+                  next:
+                    type: string
+                    nullable: true
+                    example: "http://localhost:8001/api/posts/?page=3"
+                  previous:
+                    type: string
+                    nullable: true
+                    example: "http://localhost:8001/api/posts/?page=1"
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PostList'
+
+  /api/posts/{id}/:
+    get:
+      summary: Detalle de post por ID
+      description: Obtiene el detalle completo de un post por ID
+      tags:
+        - Posts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID del post
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Detalle del post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '404':
+          description: Post no encontrado
+
+  /api/posts/{slug}/:
+    get:
+      summary: Detalle de post por slug
+      description: Obtiene el detalle completo de un post por slug
+      tags:
+        - Posts
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug del post
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detalle del post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '404':
+          description: Post no encontrado
+
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Technology"
+        slug:
+          type: string
+          example: "technology"
+
+    Author:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        display_name:
+          type: string
+          example: "John Doe"
+
+    PostList:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Getting Started with Django"
+        slug:
+          type: string
+          example: "getting-started-with-django"
+        excerpt:
+          type: string
+          example: "Django is a powerful web framework..."
+        author:
+          $ref: '#/components/schemas/Author'
+        category:
+          $ref: '#/components/schemas/Category'
+        published_at:
+          type: string
+          format: date-time
+          example: "2025-10-31T17:30:00Z"
+        views:
+          type: integer
+          example: 150
+
+    PostDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Getting Started with Django"
+        slug:
+          type: string
+          example: "getting-started-with-django"
+        body:
+          type: string
+          example: "Django is a powerful web framework for building web applications..."
+        author:
+          $ref: '#/components/schemas/Author'
+        category:
+          $ref: '#/components/schemas/Category'
+        published_at:
+          type: string
+          format: date-time
+          example: "2025-10-31T17:30:00Z"
+        views:
+          type: integer
+          example: 150
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-10-31T17:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-10-31T17:00:00Z"
+
+tags:
+  - name: Health
+    description: Endpoints de salud del servicio
+  - name: Categories
+    description: Gestión de categorías
+  - name: Posts
+    description: Gestión de posts del blog
