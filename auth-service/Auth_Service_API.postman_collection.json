@@ -1,0 +1,422 @@
+{
+	"info": {
+		"_postman_id": "auth-service-api-collection",
+		"name": "Auth Service API",
+		"description": "Colección de APIs para el microservicio de autenticación Django con JWT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "auth-service"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Service is healthy\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.status).to.eql(\"healthy\");",
+							"    pm.expect(jsonData.service).to.eql(\"auth-service\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/health/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"health",
+						""
+					]
+				},
+				"description": "Endpoint para verificar el estado del servicio"
+			},
+			"response": []
+		},
+		{
+			"name": "Register User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"User created successfully\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData.message).to.include(\"exitosamente\");",
+							"    pm.expect(jsonData.user).to.have.property(\"email\");",
+							"    pm.expect(jsonData.user).to.have.property(\"id\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirm\": \"{{test_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/register/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"register",
+						""
+					]
+				},
+				"description": "Endpoint para registrar un nuevo usuario"
+			},
+			"response": []
+		},
+		{
+			"name": "Login (Get Tokens)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Tokens received\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"access\");",
+							"    pm.expect(jsonData).to.have.property(\"refresh\");",
+							"    ",
+							"    // Guardar tokens en variables de entorno",
+							"    pm.environment.set(\"access_token\", jsonData.access);",
+							"    pm.environment.set(\"refresh_token\", jsonData.refresh);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/token/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"token",
+						""
+					]
+				},
+				"description": "Endpoint para autenticarse y obtener tokens JWT"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Profile (Me)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"User profile returned\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"email\");",
+							"    pm.expect(jsonData).to.have.property(\"id\");",
+							"    pm.expect(jsonData).to.have.property(\"is_active\");",
+							"    pm.expect(jsonData).to.have.property(\"created_at\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/me/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"me",
+						""
+					]
+				},
+				"description": "Endpoint protegido para obtener información del usuario autenticado"
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"New access token received\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"access\");",
+							"    ",
+							"    // Actualizar el access token",
+							"    pm.environment.set(\"access_token\", jsonData.access);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/token/refresh/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"token",
+						"refresh",
+						""
+					]
+				},
+				"description": "Endpoint para renovar el access token usando el refresh token"
+			},
+			"response": []
+		},
+		{
+			"name": "Register User - Duplicate Email (Error Test)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test(\"Email already exists error\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"email\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirm\": \"{{test_password}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/register/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"register",
+						""
+					]
+				},
+				"description": "Test para verificar error cuando se intenta registrar un email duplicado"
+			},
+			"response": []
+		},
+		{
+			"name": "Login - Invalid Credentials (Error Test)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Invalid credentials error\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"detail\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"wrong_password\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/token/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"token",
+						""
+					]
+				},
+				"description": "Test para verificar error con credenciales inválidas"
+			},
+			"response": []
+		},
+		{
+			"name": "Access Protected Endpoint - No Token (Error Test)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Authentication required error\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"detail\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/me/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"me",
+						""
+					]
+				},
+				"description": "Test para verificar error cuando se accede a endpoint protegido sin token"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "test_email",
+			"value": "test@postman.com",
+			"type": "string"
+		},
+		{
+			"key": "test_password",
+			"value": "testpass123",
+			"type": "string"
+		}
+	]
+}

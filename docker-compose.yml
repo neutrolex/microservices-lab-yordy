@@ -23,17 +23,20 @@ services:
   auth-service:
     build: ./auth-service
     container_name: auth_service
+    restart: always
+    environment:
+      - DEBUG=1
+      - DB_HOST=postgres
+      - DB_NAME=main_db
+      - DB_USER=devuser
+      - DB_PASS=devpass
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - postgres
       - redis
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: main_db
-      DB_USER: devuser
-      DB_PASSWORD: devpass
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+    ports:
+      - "8000:8000"
 
 volumes:
   pgdata:
